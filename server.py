@@ -35,16 +35,17 @@ class MyWebServer(socketserver.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(1024).strip().decode('utf-8')
         print ("Got a request of: %s\n" % self.data)
-        method = self.data.split(' ')[0]
-        path = self.data.split(' ')[1]
-        print(self.data)
+        data_list = self.data.split(' ')
+        if len(data_list) > 1:
+            method = data_list[0]
+            path = data_list[1]
 
-        if method == "GET":
-            self.handle_get_request(path)
-        else:
-            # Invalid Method
-            response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n<html><body><h1>Method Not Allowed</h1></body></html>"
-            self.request.sendall(response.encode('utf-8'))
+            if method == "GET":
+                self.handle_get_request(path)
+            else:
+                # Invalid Method
+                response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n<html><body><h1>Method Not Allowed</h1></body></html>"
+                self.request.sendall(response.encode('utf-8'))
 
     def handle_get_request(self, path):
         file_path = os.path.join(ROOT, path.lstrip("/"))
