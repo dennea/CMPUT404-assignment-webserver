@@ -28,6 +28,8 @@ import os
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
+# modified by Dennea MacCallum 2023
+
 ROOT = 'www'
 
 class MyWebServer(socketserver.BaseRequestHandler):
@@ -50,14 +52,14 @@ class MyWebServer(socketserver.BaseRequestHandler):
     def handle_get_request(self, path):
         file_path = os.path.join(ROOT, path.lstrip("/"))
 
-        if os.path.exists(file_path) and not self.bad_path(path):
+        if os.path.exists(file_path) and not self.is_bad_path(file_path):
             if os.path.isfile(file_path):
                 # Handles files
                 with open(file_path, 'r') as file:
                     content = file.read()
                     contentType = 'text/html'
-                if path.split('.')[1] == 'css':
-                    contentType = 'text/css'
+                    if path.split('.')[1] == 'css':
+                        contentType = 'text/css'
 
                 response = f"HTTP/1.1 200 OK\r\nContent-Type: {contentType}\r\n\r\n"
                 self.request.sendall(bytearray(response + content,'utf-8'))
@@ -77,18 +79,26 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
                         response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n"
                         self.request.sendall(bytearray(response + content,'utf-8'))
+                    else:
+                       self.not_found()
 
         else:
-            # File was not found
-            response = "HTTP/1.1 404 Not Found\r\n\r\n<html><body><h1>404 Not Found</h1></body></html>"
-            self.request.sendall(bytearray(response,'utf-8'))
-
-    def bad_path(self, file_path):
-        directories = file_path.split("/")
-        if ".." in directories:
-            return True
-        else:
+            self.not_found()
+    
+    def is_bad_path(self, path):
+        # ensure that the path is within our root directory
+        # reference: Chat GPT lines 91 and 93
+        abs_path = os.path.abspath(path)
+        
+        if abs_path.startswith(os.getcwd() + '/' + ROOT):
             return False
+        else:
+            return True
+        
+    def not_found(self):
+         # File was not found
+        response = "HTTP/1.1 404 Not Found\r\n\r\n<html><body><h1>404 Not Found</h1></body></html>"
+        self.request.sendall(bytearray(response,'utf-8'))
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
