@@ -1,6 +1,7 @@
 CMPUT404-assignment-webserver
 
 Copyright 2013 Abram Hindle, Eddie Antonio Santos
+
 Copyright 2023 Dennea MacCallum
 
 Licensed under the Apache License, Version 2.0 (the "License");
