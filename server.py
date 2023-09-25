@@ -28,7 +28,7 @@ import os
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
-# modified by Dennea MacCallum 2023
+# Copyright 2023 Dennea MacCallum
 
 ROOT = 'www'
 
@@ -37,7 +37,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(1024).strip().decode('utf-8')
         print ("Got a request of: %s\n" % self.data)
-        data_list = self.data.split(' ')
+        data_list = self.data.split()
         if len(data_list) > 1:
             method = data_list[0]
             path = data_list[1]
@@ -46,8 +46,12 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 self.handle_get_request(path)
             else:
                 # Invalid Method
-                response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n<html><body><h1>Method Not Allowed</h1></body></html>"
+                response = "HTTP/1.1 405 Method Not Allowed\r\n"
                 self.request.sendall(response.encode('utf-8'))
+        else:
+            # Make sure the request has needed parameters: method and path
+            response = "HTTP/1.1 400 Bad Request\r\n"
+            self.request.sendall(response.encode('utf-8'))
 
     def handle_get_request(self, path):
         file_path = os.path.join(ROOT, path.lstrip("/"))
@@ -57,9 +61,11 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 # Handles files
                 with open(file_path, 'r') as file:
                     content = file.read()
-                    contentType = 'text/html'
+                    contentType = 'text/plain'
                     if path.split('.')[1] == 'css':
                         contentType = 'text/css'
+                    elif path.split('.')[1] == 'html':
+                        contentType = 'text/html'
 
                 response = f"HTTP/1.1 200 OK\r\nContent-Type: {contentType}\r\n\r\n"
                 self.request.sendall(bytearray(response + content,'utf-8'))
@@ -87,9 +93,9 @@ class MyWebServer(socketserver.BaseRequestHandler):
     
     def is_bad_path(self, path):
         # ensure that the path is within our root directory
-        # reference: Chat GPT lines 91 and 93
+        # reference: Chat GPT helped with lines 103 and 105
         abs_path = os.path.abspath(path)
-        
+
         if abs_path.startswith(os.getcwd() + '/' + ROOT):
             return False
         else:
