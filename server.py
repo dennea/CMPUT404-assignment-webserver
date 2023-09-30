@@ -93,10 +93,10 @@ class MyWebServer(socketserver.BaseRequestHandler):
     
     def is_bad_path(self, path):
         # ensure that the path is within our root directory
-        # reference: Chat GPT helped with lines 103 and 105
+        # reference: Chat GPT helped with lines 97 and 99
         abs_path = os.path.abspath(path)
 
-        if abs_path.startswith(os.getcwd() + '/' + ROOT):
+        if abs_path.startswith(os.path.join(os.getcwd(), ROOT)):
             return False
         else:
             return True
